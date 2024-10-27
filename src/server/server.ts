@@ -1,17 +1,38 @@
 import { WebSocketServer } from 'ws';
+import { addPlayer, getPlayer } from '../db/inmemoryDB';
 
-const wss = new WebSocketServer({ port: 8080 });
-console.log('WebSocket server started on ws://localhost:8080');
+export function startWSS() {
+    const wss = new WebSocketServer({ port: 8080 });
 
-wss.on('connection', (ws) => {
-    console.log('New client connected');
+    wss.on('connection', (ws) => {
+        ws.on('message', (message) => {
+            const msg = JSON.parse(message.toString());
 
-    ws.on('message', (message) => {
-        console.log('Received:', message);
-        ws.send(JSON.stringify({ type: 'ack', data: 'Message received' }));
+            if (msg.type === 'reg') {
+                const { name, password } = msg.data;
+                const existingPlayer = getPlayer(name);
+
+                if (existingPlayer) {
+                    ws.send(
+                        JSON.stringify({
+                            type: 'reg',
+                            data: {
+                                name,
+                                error: true,
+                                errorText: 'Player already exists',
+                            },
+                        })
+                    );
+                } else {
+                    addPlayer(name, password);
+                    ws.send(
+                        JSON.stringify({
+                            type: 'reg',
+                            data: { name, error: false, errorText: '' },
+                        })
+                    );
+                }
+            }
+        });
     });
-
-    ws.on('close', () => {
-        console.log('Client disconnected');
-    });
-});
+}
