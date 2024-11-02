@@ -1,17 +1,11 @@
-type Player = { name: string; password: string; wins: number };
-type Room = { roomId: string; players: Player[] };
+import { PlayerData } from '../types/types';
 
-const players: Player[] = [];
-const rooms: Room[] = [];
+export const users: Map<string, PlayerData> = new Map();
 
-export const addPlayer = (name: string, password: string) => {
-    players.push({ name, password, wins: 0 });
+export const addUser = (id: string, data: PlayerData): void => {
+  users.set(id, data);
 };
 
-export const getPlayer = (name: string) => players.find((p) => p.name === name);
-
-export const addRoom = (roomId: string, player: Player) => {
-    rooms.push({ roomId, players: [player] });
+export const getUserById = (name: string): PlayerData | undefined => {
+  return Array.from(users.values()).find((user) => user.name === name);
 };
-
-export const getRooms = () => rooms.filter((room) => room.players.length === 1);
